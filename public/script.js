@@ -25,6 +25,8 @@ let userId;
 let isAuthReady = false;
 
 // Global variables provided by the Canvas environment (or undefined if opened directly)
+// NOTE: We will ignore __app_id for the stream status since the server is writing
+// directly to the root collection, not using the /artifacts/{appId}/public/data path.
 const appId =
     typeof __app_id !== "undefined" ? __app_id : "default-app-id";
 const firebaseConfig =
@@ -105,7 +107,10 @@ async function initializeFirebase() {
                 console.log("Firebase initialized and authenticated. User ID:", userId);
                 // Una vez autenticado, comienza a escuchar los datos
                 listenForStreamStatus();
-                listenForAnnouncements();
+                // Omitimos listenForAnnouncements por ahora para enfocarnos en el stream,
+                // pero si el backend NO escribe allí, también necesitaría ser ajustado.
+                // Lo ajustamos a la ruta raíz por si acaso.
+                listenForAnnouncements(); 
             } else {
                 isAuthReady = true;
                 // Si el usuario se cierra la sesión por alguna razón, podemos intentar anónimamente de nuevo
@@ -130,18 +135,15 @@ async function initializeFirebase() {
 function listenForStreamStatus() {
     if (!db || !isAuthReady) return;
 
-    // Ruta para el documento de estado público: /artifacts/{appId}/public/data/stream_status/kick_moaixd
+    // *** RUTA CORREGIDA: Apunta a la colección 'stream_status' en la raíz (donde el servidor escribe) ***
+    // El servidor escribe: /stream_status/kick_moaixd
     const streamDocRef = doc(
         db,
-        "artifacts",
-        appId,
-        "public",
-        "data",
-        "stream_status",
-        `kick_${KICK_CHANNEL_SLUG}`
+        "stream_status", // Nombre de la colección raíz
+        `kick_${KICK_CHANNEL_SLUG}` // ID del documento
     );
     
-    console.log(`[Firestore Status] Intentando conectar con el documento: artifacts/${appId}/public/data/stream_status/kick_${KICK_CHANNEL_SLUG}`);
+    console.log(`[Firestore Status] Intentando conectar con el documento (Ruta corregida): stream_status/kick_${KICK_CHANNEL_SLUG}`);
 
     // Usa onSnapshot para escuchar cambios en tiempo real
     const unsubscribe = onSnapshot(
@@ -171,14 +173,10 @@ function listenForStreamStatus() {
 function listenForAnnouncements() {
     if (!db || !isAuthReady || !announcementsContainer) return;
 
-    // Ruta para la colección de anuncios públicos: /artifacts/{appId}/public/data/announcements
+    // *** RUTA CORREGIDA: Asumimos que los anuncios también están en una colección raíz, como el servidor lo haría. ***
     const announcementsColRef = collection(
         db,
-        "artifacts",
-        appId,
-        "public",
-        "data",
-        "announcements"
+        "announcements" // Nombre de la colección raíz
     );
 
     // Consulta: obtiene los 5 comunicados más recientes
@@ -188,7 +186,7 @@ function listenForAnnouncements() {
         // No hay un límite explícito aquí, pero se pueden agregar si la colección es grande
     );
     
-    console.log("[Firestore Announcements] Intentando conectar con la colección de anuncios.");
+    console.log("[Firestore Announcements] Intentando conectar con la colección de anuncios (Ruta corregida).");
 
     onSnapshot(q, (querySnapshot) => {
         // Limpiar el contenedor
