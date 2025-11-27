@@ -107,31 +107,48 @@ async function initializeFirebase() {
 
 /**
  * Escucha en tiempo real el estado del stream.
- * Colección: /stream_status/kick_moaixd
+ * Colección: /artifacts/{appId}/public/data/stream_status/current_status
  */
 function listenForStreamStatus() {
     if (!db || !isAuthReady) return;
 
-    // Se usa la ruta directa que se observó en la consola
-    const docRef = doc(db, 'stream_status', 'kick_moaixd');
-    console.log("[Firestore Status] Conectando a stream_status/kick_moaixd en tiempo real.");
+    // !!! CORRECCIÓN CRÍTICA DE RUTA !!!
+    // Se usa la ruta pública correcta del documento que enviaste.
+    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'stream_status', 'current_status');
+    console.log(`[Firestore Status] Conectando a ${docRef.path} en tiempo real.`);
 
     onSnapshot(docRef, (docSnapshot) => {
         const statusElement = document.getElementById('streamStatus');
         const platformElement = document.getElementById('platform');
         const streamSection = document.getElementById('stream-live-section');
-
+        // Buscar el elemento para mostrar el mensaje de stream.
+        let streamMessageElement = document.getElementById('streamMessage'); 
+        
         if (!statusElement || !platformElement || !streamSection) return;
 
         if (docSnapshot.exists()) {
             const data = docSnapshot.data();
             console.log("[Firestore Status] Datos de stream recibidos:", data);
             
-            // Usamos la propiedad 'isOnline' que se vio en la consola
+            // Usamos la propiedad 'isOnline'
             if (data.isOnline) { 
                 statusElement.textContent = '¡EN VIVO!';
                 statusElement.classList.remove('bg-gray-700', 'animate-pulse');
                 statusElement.classList.add('bg-green-400', 'text-black', 'shadow-lg', 'shadow-green-500/50');
+                
+                // --- Lógica para mostrar el mensaje de stream ---
+                // Si el elemento no existe, lo creamos para que se muestre el mensaje.
+                if (!streamMessageElement) {
+                    streamMessageElement = document.createElement('p');
+                    streamMessageElement.id = 'streamMessage';
+                    // Estilos Tailwind para que se vea bien
+                    streamMessageElement.className = 'text-gray-200 text-sm mt-3 p-3 bg-gray-800 rounded-lg border border-green-500/50';
+                    // Lo insertamos justo después de la sección del stream
+                    streamSection.parentNode.insertBefore(streamMessageElement, streamSection.nextSibling); 
+                }
+                streamMessageElement.textContent = data.message || 'Stream en vivo, pero sin mensaje.';
+                streamMessageElement.style.display = 'block';
+
                 platformElement.textContent = `Plataforma: Kick`; // Ya que la colección es específica de Kick
                 platformElement.classList.remove('text-gray-400');
                 platformElement.classList.add('text-green-400');
@@ -141,17 +158,26 @@ function listenForStreamStatus() {
                 statusElement.textContent = 'DESCONECTADO';
                 statusElement.classList.remove('bg-green-400', 'text-black', 'shadow-lg', 'shadow-green-500/50');
                 statusElement.classList.add('bg-gray-700', 'animate-pulse', 'text-white');
+                
+                // Oculta el mensaje del stream si está desconectado
+                if (streamMessageElement) {
+                    streamMessageElement.style.display = 'none';
+                }
+
                 platformElement.textContent = 'Plataforma: Kick';
                 platformElement.classList.remove('text-green-400');
                 platformElement.classList.add('text-gray-400');
                 streamSection.style.display = 'none';
             }
         } else {
-            console.warn("[Firestore Status] El documento 'kick_moaixd' no existe.");
+            console.warn(`[Firestore Status] El documento 'current_status' no existe en ${docRef.path}.`);
             statusElement.textContent = 'ERROR (No existe)';
             statusElement.classList.remove('bg-green-400', 'animate-pulse');
             statusElement.classList.add('bg-red-600', 'text-white');
             streamSection.style.display = 'none';
+             if (streamMessageElement) {
+                streamMessageElement.style.display = 'none';
+            }
         }
     }, (error) => {
         console.error("[Firestore Status] Error al escuchar el estado del stream:", error);
@@ -221,7 +247,8 @@ function listenForAnnouncements() {
 
                     modalImage.src = imageUrl;
                     modalImage.alt = announcement.title || 'Imagen de Novedad';
-                    modalImage.style.display = 'block'; 
+                    // Revisa la lógica para mostrar/ocultar la imagen
+                    modalImage.style.display = announcement.imageUrl && announcement.imageUrl.startsWith('http') ? 'block' : 'none'; 
                     
                     modalTitle.textContent = announcement.title || 'Sin título';
                     modalContent.textContent = announcement.content || '';
