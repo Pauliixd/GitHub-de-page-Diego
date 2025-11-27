@@ -96,6 +96,47 @@
                     </div>
                 </div>
 
+                <!-- ======================= 🎮 AHORCADO - MINI JUEGO ======================= -->
+                <div class="content-block-card mt-8 pt-4 border-t border-gray-700 w-full" id="ahorcadoSection">
+                    <h2 class="text-4xl font-semibold text-white mb-4 kick-title-style">
+                        🎮 Ahorcado del Stream
+                    </h2>
+
+                    <p class="text-gray-300 text-base mb-4">
+                        ¡Adivina la palabra secreta del día! 👀
+                        <br>(Pedime las pistas en el strem)
+                    </p>
+
+                    <!-- Palabra Oculta -->
+                    <div id="palabraAhorcado" class="text-center text-4xl tracking-widest font-bold mb-6 neon-green">
+                    </div>
+
+                    <!-- Letras usadas -->
+                    <div class="text-gray-400 mb-4">
+                        Letras usadas: <span id="letrasUsadas"></span>
+                    </div>
+
+                    <!-- Input del jugador -->
+                    <div class="flex justify-center gap-4 mb-6">
+                        <input id="inputLetra" maxlength="1"
+                            class="bg-gray-900 text-white px-4 py-2 rounded-lg border border-green-500 focus:ring-2 focus:ring-green-400 w-20 text-center text-2xl"
+                            placeholder="_">
+                        <button id="btnProbarLetra"
+                            class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold shadow-lg transition">Probar</button>
+                    </div>
+
+                    <!-- Intentos -->
+                    <p class="text-center text-lg text-gray-300 mb-3">
+                        Intentos restantes: <span id="intentosRestantes" class="font-bold text-green-400">7</span>
+                    </p>
+
+                    <!-- Mensaje final -->
+                    <p id="mensajeFinal" class="text-center text-2xl font-bold mt-4"></p>
+                    
+                </div>
+                <!-- ======================================================================= -->
+
+
                 <!-- Nueva Sección "Comunidados o Novedades" -->
                 <div class="content-block-card">
                     <h3 class="text-4xl font-semibold text-white mb-4 kick-title-style">
@@ -209,7 +250,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Modal para mostrar comunicados en grande -->
     <div id="announcementModal" class="modal-overlay">
         <div class="modal-content">
@@ -223,5 +264,5 @@
 </body>
 
 <script type="module" src="./script.js"></script>
-
+<script type="module" src="juegos.js"></script>
 </html>

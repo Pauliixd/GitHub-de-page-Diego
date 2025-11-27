@@ -3,7 +3,9 @@
 /* Custom styles to enhance Tailwind */
 body {
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #011701 0%, #053f0a 100%);
+    background: linear-gradient(45deg, #15ff8a, #8a00ff, #0b0d14, #001a12);
+    background-size: 400% 400%;
+    animation: rotarDegrade 10s ease infinite;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -15,14 +17,20 @@ body {
     color: #e2e8f0;
 }
 
+@keyframes rotarDegrade {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 /* Styles for individual content blocks (cards) */
 .content-block-card {
-    background-color: #2d482e;
+    background-color: #1a1f2c; /* Nuevo: negro azulado futurista */
     border-radius: 2rem;
     box-shadow: 0 15px 25px rgba(0, 0, 0, 0.4);
     padding: 2.5rem;
     text-align: center;
-    border: 1px solid rgba(74, 85, 104, 0.5);
+    border: 1px solid rgba(138, 0, 255, 0.35); /* Morado neón sutil */
     width: 100%;
     max-width: 500px;
     display: flex;
@@ -31,7 +39,7 @@ body {
 }
 
 /* Adjustments for large screens (lg) */
-@media (min-width: 1024px) { /* Tailwind's 'lg' breakpoint */
+@media (min-width: 1024px) {
     .content-block-card {
         max-width: none;
         flex-grow: 1;
@@ -56,28 +64,29 @@ h1 {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
+/* ONLINE */
 .online {
-    background-color: #26ff81; /* Bright Green for online */
+    background-color: #15ff8a; /* Verde neón más prolijo */
 }
 
+/* OFFLINE */
 .offline {
-    background-color: #f94f4f; /* Red for offline */
+    background-color: #ff3b7f; /* Rosa/magenta futurista */
 }
 
-/* Text color adjustments to match indicators */
 .text-online {
-    color: #26ff81;
+    color: #15ff8a;
 }
 
 .text-offline {
-    color: #f94f4f; /* Rojo para el texto offline */
+    color: #ff3b7f;
 }
 
 .input-field {
     padding: 0.85rem;
     border-radius: 0.75rem;
-    border: 1px solid #4a5568;
-    background-color: #1d2c1a;
+    border: 1px solid #3a3f50;
+    background-color: #12151c; /* Más dark futurista */
     color: #e2e8f0;
     width: 100%;
     margin-bottom: 1rem;
@@ -94,18 +103,18 @@ h1 {
 
 .social-link:hover {
     transform: translateY(-3px);
-    color: #71ed63; /* Light green on hover for social links */
+    color: #36ff9f; /* Verde neón más suave */
 }
 
 .loading-spinner {
     border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid #4ce142;
+    border-top: 4px solid #36ff9f;
     border-radius: 50%;
     width: 30px;
     height: 30px;
     animation: spin 1s linear infinite;
     margin: 0 auto 1rem;
-    display: block; /* Ahora el spinner es visible por defecto */
+    display: block;
 }
 
 @keyframes spin {
@@ -113,26 +122,24 @@ h1 {
     100% { transform: rotate(360deg); }
 }
 
-/* Style for the verified badge */
 .verified-badge {
-    color: #26ff81;
+    color: #15ff8a;
     font-size: 0.8em;
     margin-left: 0.5rem;
     vertical-align: middle;
 }
 
-/* Styles for the main-wrapper containing all cards */
+/* Main wrapper */
 .main-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    /* Eliminado: max-width: 1200px; */ /* Ahora se controla con clase Tailwind en HTML */
     gap: 2rem;
     margin: 0 auto;
 }
 
-@media (min-width: 1024px) { /* Tailwind's 'lg' breakpoint (large screens) */
+@media (min-width: 1024px) {
     .main-wrapper {
         flex-direction: row;
         justify-content: center;
@@ -141,27 +148,24 @@ h1 {
     }
 }
 
-/* Custom style for the large title */
 .kick-title-style {
     font-family: 'Passion One', sans-serif;
-    color: #26ff81;
+    color: #15ff8a;
     -webkit-text-stroke: 2px #000000;
     text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
     line-height: 1;
 }
 
-/* === ANIMACIONES PERSONALIZADAS PARA STREAM ONLINE === */
-
-/* Avatar con borde animado (glow) - ONLINE */
+/* === ONLINE ANIMATIONS === */
 @keyframes pulse-border-online {
   0% {
-    box-shadow: 0 0 10px #26ff81, 0 0 20px #26ff81;
+    box-shadow: 0 0 10px #15ff8a, 0 0 20px #15ff8a;
   }
   50% {
-    box-shadow: 0 0 20px #26ff81, 0 0 40px #26ff81;
+    box-shadow: 0 0 20px #15ff8a, 0 0 40px #15ff8a;
   }
   100% {
-    box-shadow: 0 0 10px #26ff81, 0 0 20px #26ff81;
+    box-shadow: 0 0 10px #15ff8a, 0 0 20px #15ff8a;
   }
 }
 
@@ -169,13 +173,12 @@ h1 {
   animation: pulse-border-online 2s infinite;
 }
 
-/* Texto de estado brillante - ONLINE */
 @keyframes glow-online {
   from {
-    text-shadow: 0 0 10px #26ff81, 0 0 20px #26ff81;
+    text-shadow: 0 0 10px #15ff8a, 0 0 20px #15ff8a;
   }
   to {
-    text-shadow: 0 0 20px #71ed63, 0 0 30px #71ed63;
+    text-shadow: 0 0 20px #36ff9f, 0 0 30px #36ff9f;
   }
 }
 
@@ -183,18 +186,16 @@ h1 {
   animation: glow-online 1.5s ease-in-out infinite alternate;
 }
 
-/* === ANIMACIONES PERSONALIZADAS PARA STREAM OFFLINE === */
-
-/* Avatar con borde animado (glow) - OFFLINE */
+/* === OFFLINE ANIMATIONS === */
 @keyframes pulse-border-offline {
     0% {
-        box-shadow: 0 0 10px #f94f4f, 0 0 20px #f94f4f;
+        box-shadow: 0 0 10px #ff3b7f, 0 0 20px #ff3b7f;
     }
     50% {
-        box-shadow: 0 0 20px #f94f4f, 0 0 40px #f94f4f;
+        box-shadow: 0 0 20px #ff3b7f, 0 0 40px #ff3b7f;
     }
     100% {
-        box-shadow: 0 0 10px #f94f4f, 0 0 20px #f94f4f;
+        box-shadow: 0 0 10px #ff3b7f, 0 0 20px #ff3b7f;
     }
 }
 
@@ -202,13 +203,12 @@ h1 {
     animation: pulse-border-offline 2s infinite;
 }
 
-/* Texto de estado brillante - OFFLINE */
 @keyframes glow-offline {
     from {
-        text-shadow: 0 0 10px #f94f4f, 0 0 20px #f94f4f;
+        text-shadow: 0 0 10px #ff3b7f, 0 0 20px #ff3b7f;
     }
     to {
-        text-shadow: 0 0 20px #ff7f7f, 0 0 30px #ff7f7f;
+        text-shadow: 0 0 20px #ff70a8, 0 0 30px #ff70a8;
     }
 }
 
@@ -216,86 +216,81 @@ h1 {
     animation: glow-offline 1.5s ease-in-out infinite alternate;
 }
 
-/* Estilos para el botón "Ver en vivo" */
+/* Botón "Ver en vivo" */
 .go-live-button {
-    /* Animación de pulso para el botón */
     animation: pulse-button 1.5s infinite ease-in-out;
 }
 
 @keyframes pulse-button {
     0% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(38, 255, 129, 0.7);
+        box-shadow: 0 0 0 0 rgba(21, 255, 138, 0.7);
     }
     70% {
         transform: scale(1.05);
-        box-shadow: 0 0 0 15px rgba(38, 255, 129, 0);
+        box-shadow: 0 0 0 15px rgba(21, 255, 138, 0);
     }
     100% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(38, 255, 129, 0);
+        box-shadow: 0 0 0 0 rgba(21, 255, 138, 0);
     }
 }
 
-
-/* Toast / Alerta flotante */
+/* Toast */
 .toast {
   position: fixed;
   top: 1rem;
   right: 1rem;
-  background-color: #26ff81;
+  background-color: #15ff8a;
   color: #000;
   padding: 0.75rem 1.25rem;
   border-radius: 0.75rem;
   font-weight: bold;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
   z-index: 9999;
-  display: none; /* Oculto por defecto */
-  opacity: 0; /* Para la animación de entrada/salida */
-  transform: translateX(100%); /* Para la animación de entrada/salida */
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Transición suave */
+  display: none;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 
-/* Clase para mostrar el toast con animación */
 .toast.show {
     opacity: 1;
     transform: translateX(0);
 }
 
-/* Estilos para el overlay del modal */
+/* Modal */
 .modal-overlay {
-    display: none; /* Oculto por defecto */
-    position: fixed; /* Fijo en la pantalla */
-    z-index: 1000; /* Por encima de todo lo demás */
+    display: none;
+    position: fixed;
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro semitransparente */
-    justify-content: center; /* Centra el contenido horizontalmente */
-    align-items: center; /* Centra el contenido verticalmente */
-    overflow: auto; /* Permite scroll si el contenido es muy grande */
-    padding: 20px; /* Padding para evitar que el contenido toque los bordes */
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    overflow: auto;
+    padding: 20px;
     box-sizing: border-box;
 }
 
-/* Estilos para el contenido del modal */
 .modal-content {
-    background-color: #2d482e; /* Color de fondo similar a tus tarjetas */
+    background-color: #1a1f2c;
     margin: auto;
     padding: 2.5rem;
     border-radius: 2rem;
     box-shadow: 0 15px 25px rgba(0, 0, 0, 0.6);
-    max-width: 800px; /* Ancho máximo para el modal */
-    width: 90%; /* Ancho responsivo */
+    max-width: 800px;
+    width: 90%;
     position: relative;
-    color: #e2e8f0; /* Color de texto claro */
-    text-align: center; /* Centra el texto dentro del modal */
-    max-height: 90vh; /* Limita la altura del contenido a 90% del viewport height */
-    overflow-y: auto; /* Agrega scroll vertical si el contenido excede el max-height */
+    color: #e2e8f0;
+    text-align: center;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
-/* Estilos para el botón de cerrar */
 .close-button {
     color: #aaa;
     position: absolute;
@@ -310,44 +305,38 @@ h1 {
 .close-button:hover,
 .close-button:focus {
     color: #fff;
-    text-decoration: none;
-    cursor: pointer;
 }
 
-/* Estilos para la imagen dentro del modal */
 .modal-image {
     max-width: 100%;
     height: auto;
     border-radius: 1rem;
     margin-bottom: 1.5rem;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    display: block; /* Asegura que la imagen se comporte como bloque para centrarla */
+    display: block;
     margin-left: auto;
     margin-right: auto;
 }
 
-/* Estilos para el título del modal */
 .modal-title {
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
-    font-size: 2.5rem; /* Título más grande */
-    color: #26ff81; /* Color de tu estilo Kick */
+    font-size: 2.5rem;
+    color: #15ff8a;
     margin-bottom: 1rem;
-    -webkit-text-stroke: 1px #000000; /* Borde de texto más fino para el modal */
+    -webkit-text-stroke: 1px #000000;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Estilos para el contenido de texto del modal */
 .modal-text {
-    font-size: 1.15rem; /* Ligeramente más grande */
-    line-height: 1.7; /* Más espacio entre líneas */
-    color: #d1d5db; /* Un gris más claro para el contenido */
-    white-space: pre-wrap; /* Mantiene saltos de línea y espacios del contenido */
-    text-align: left; /* Alinea el texto a la izquierda para mejor lectura */
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: #d1d5db;
+    white-space: pre-wrap;
+    text-align: left;
     margin-top: 1rem;
 }
 
-/* Responsive adjustments for modal content */
 @media (max-width: 768px) {
     .modal-content {
         padding: 1.5rem;
@@ -361,3 +350,7 @@ h1 {
     }
 }
 
+.neon-green {
+    color: #4effa3;
+    text-shadow: 0 0 10px #33ff88, 0 0 20px #33ff88;
+}
