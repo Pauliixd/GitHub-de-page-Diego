@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moaixd - Estado de Stream</title>
+    <!-- Meta Tags -->
+    <meta name="description" content="¡Hola mi sangre, descubre si estoy en vivo ahora mismo!">
+    <meta name="keywords" content="Moaixd, Stream, Kick, Discord, Instagram, TikTok, YouTube">
+    <meta name="author" content="Moaixd">
+    <!-- Meta Tags para SEO -->
+    <meta name="google-site-verification" content="c-VdVhdw0OX5SRa2LVnpiracU17UMs4JD9L4egQ1-d4" />
+    <!-- Favicon -->
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon" />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Montserrat:wght@700;800&family=Passion+One:wght@400;700;900&display=swap"
+        rel="stylesheet" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- Enlace al archivo JavaScript externo -->
+    <script src="script.js" type="module"></script>
+</head>
+
+<body>
+    <!-- Title visible only on large screens -->
+    <h2 class="hidden lg:block text-4xl font-bold mb-8 text-center w-full kick-title-style justify-center">
+        Seguime en Kick: Moaixd
+    </h2>
+    <!-- Main Wrapper -->
+    <div class="text-white min-h-screen flex flex-col items-center justify-center py-8 px-4">
+        <div class="main-wrapper max-w-screen-2xl">
+            <!-- Left Column: Avatar, Name, Slogan, and "Sobre mí" -->
+            <div class="flex flex-col gap-8 w-full max-w-500px lg:max-w-none lg:flex-grow">
+                <div class="content-block-card">
+                    <!-- Banner Image Section (Only visible on small/medium screens) -->
+                    <div class="mb-6 lg:hidden">
+                        <img src="img/banner.png" alt="Banner de Stream"
+                            class="w-full h-auto rounded-lg mb-4 shadow-md" />
+                    </div>
+
+                    <img src="img/moaixd-logo.png" alt="Avatar de Moaixd"
+                        class="rounded-full items-center mx-auto mb-4 border-4 border-green-500 shadow-lg w-64 h-auto lg:w-72 lg:mx-0" />
+                    <h1
+                        class="text-6xl font-extrabold mb-2 flex items-center justify-center lg:justify-center text-white kick-title-style">
+                        Moaixd
+                        <i class="fas fa-circle-check verified-badge"></i>
+                    </h1>
+                    <p class="text-md text-gray-400">¡Tu destino para streams épicos!</p>
+                </div>
+
+                <!-- Nueva Sección "Sobre mí" -->
+                <div class="content-block-card">
+                    <h2 class="text-4xl font-semibold text-white mb-4 kick-title-style">
+                        👋 Sobre mí
+                    </h2>
+                    <p class="text-gray-300 text-base leading-relaxed">
+                        Soy moaixd, streamer y main jungla en LoL.
+                        Juego Kha'Zix 🦗, Jarvan ⚔️ y últimamente le meto full Viego 👑
+                        Si te gusta el contenido chill 😎 pero con buenas plays 🔥, este es tu lugar 🎯
+                    </p>
+                    <!-- puedes añadir más contenido aquí, como una foto, dato proximo -->
+                </div>
+            </div>
+
+            <!-- Central Column: Stream Status, Button, and "Calendario de Streams" -->
+            <div class="flex flex-col gap-8 w-full max-w-500px lg:max-w-none lg:flex-grow">
+                <div class="content-block-card">
+                    <p class="text-lg text-gray-300 mb-6 lg:mb-4">
+                        ¡Hola mi sangre, descubre si estoy en vivo ahora mismo!
+                    </p>
+                    <div id="loadingSpinner" class="loading-spinner"></div>
+                    <div class="flex items-center justify-center mb-8 lg:mb-4">
+                        <span id="statusIndicator" class="status-indicator offline"></span>
+                        <span id="statusText" class="text-5xl font-bold text-gray-100 lg:text-8xl">Al tiro
+                            hermano...</span>
+                    </div>
+
+                    <!-- Botón "Ver en vivo" -->
+                    <div id="goLiveButtonContainer" class="mt-4 mb-6" style="display: none;">
+                        <a href="https://kick.com/moaixd" target="_blank" id="goLiveButton"
+                            class="go-live-button inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 ease-in-out">
+                            <i class="fas fa-play-circle mr-2"></i>
+                            ¡Ver en vivo ahora!
+                        </a>
+                    </div>
+
+                    <div class="mb-6 lg:mb-0">
+                        <p class="text-gray-400 text-sm mb-2">El stream esta ..</p>
+                        <p id="displayMessage" class="text-gray-100 text-lg mt-1 break-words"></p>
+                    </div>
+                </div>
+
+                <!-- Nueva Sección "Comunidados o Novedades" -->
+                <div class="content-block-card">
+                    <h3 class="text-4xl font-semibold text-white mb-4 kick-title-style">
+                        📢 Comunicados y Novedades
+                    </h3>
+                    <div id="announcementsContainer" class="space-y-6">
+                        <!-- Los comunicados se cargarán aquí desde Firestore -->
+                        <p class="text-gray-400">Cargando novedades...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Social Media, Donations, and Creator Message Input -->
+            <div class="content-block-card">
+                <h2 class="text-3xl font-semibold text-white mb-4 kick-title-style">
+                    Mi chan sigueme en:
+                </h2>
+                <div class="flex justify-center space-x-6 text-3xl lg:justify-center">
+                    <!-- Kick -->
+                    <a href="https://kick.com/moaixd" target="_blank"
+                        class="text-green-400 hover:text-green-600 social-link" aria-label="Mi canal de Kick">
+                        <i class="fab fa-kickstarter"></i>
+                    </a>
+                    <!-- Discord -->
+                    <a href="https://discord.gg/5ppZw2DCE8" target="_blank"
+                        class="text-blue-400 hover:text-blue-600 social-link" aria-label="Mi Discord">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <!-- Instagram -->
+                    <a href="https://www.instagram.com/moaixdd/" target="_blank"
+                        class="text-pink-400 hover:text-pink-600 social-link" aria-label="Mi Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <!-- TikTok -->
+                    <a href="https://www.tiktok.com/@moaixd1" target="_blank"
+                        class="text-white hover:text-pink-500 social-link" aria-label="Mi TikTok">
+                        <i class="fab fa-tiktok"></i>
+                    </a>
+                    <!-- YouTube -->
+                    <a href="https://www.youtube.com/@moaixd-v1s" target="_blank"
+                        class="text-red-400 hover:text-red-600 social-link" aria-label="Mi YouTube">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+                <p class="text-gray-500 text-xs mt-4 lg:text-center">
+                    (Nota: Esta pag la hizo pau con mucho amor)
+                </p>
+
+                <!-- Nueva Sección "Calendario de Streams" -->
+                <div class="mt-8 pt-4 border-t border-gray-700 w-full">
+                    <h2 class="text-4xl font-semibold text-white mb-4 kick-title-style">
+                        📅 Calendario de Streams
+                    </h2>
+                    <p class="text-gray-300 text-base mb-4">
+                        ¡No te pierdas ningún stream! suelo prender de lunes a Viernes aprox a las 17:00 hs:
+                    </p>
+                    <ul class="text-gray-200 mx-auto max-w-xs space-y-2">
+                        <li class="flex items-center justify-center">
+                            <i class="fas fa-calendar-day mr-2 text-green-400"></i>
+                            <span class="font-bold">Lunes:</span> 17:00 - 02:00 hs
+                        </li>
+                        <li class="flex items-center justify-center">
+                            <i class="fas fa-calendar-day mr-2 text-green-400"></i>
+                            <span class="font-bold">Miércoles:</span> 17:00 - 02:00 hs
+                        </li>
+                        <li class="flex items-center justify-center">
+                            <i class="fas fa-calendar-day mr-2 text-green-400"></i>
+                            <span class="font-bold">Viernes:</span> 18:00 - 02:00 hs
+                        </li>
+                        <li class="flex items-center justify-center">
+                            <i class="fas fa-calendar-check mr-2 text-green-400"></i>
+                            <span class="font-bold">Fines de semana:</span> 18:00 - 05:00 hs
+                        </li>
+                    </ul>
+                    <p class="text-gray-400 text-sm mt-4">
+                        *Todos los horarios son en **GMT-3 (Hora de Argentina)** <br>Streams sorpresa o eventos
+                        especiales.
+                        ¡Atentos
+                        a mis redes!.
+                    </p>
+                </div>
+
+                <!-- Sección "Donaciones" con PayPal y Mercado Pago -->
+                <div class="mt-8 pt-4 border-t border-gray-700 w-full">
+                    <h2 class="text-4xl font-semibold text-white mb-4 kick-title-style">
+                        💖 Apoya el Stream
+                    </h2>
+
+                    <p class="text-gray-300 text-base mb-4">
+
+                        Tu apoyo es fundamental para seguir creando contenido. ¡Cada donación, por
+                        pequeña que sea, ayuda a
+
+                        mejorar la calidad del stream!
+
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row justify-center gap-4 mb-4">
+                        <!-- Botón PayPal -->
+                        <a href="https://paypal.me/moaixd?country.x=CL&locale.x=es_XC" target="_blank"
+                            class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 ease-in-out">
+                            <i class="fas fa-hand-holding-heart mr-2"></i>
+                            ¡Donar ahora!
+                        </a>
+                    </div>
+                    <p class="text-gray-400 text-sm mt-4">
+                        Para cuenta rut de banco estado Chile: 20.406.895-k <br> Para transferencias Argentina alias:
+                        Pau.xeneize
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para mostrar comunicados en grande -->
+    <div id="announcementModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalBtn">&times;</span>
+            <img id="modalImage" src="" alt="Imagen de Novedad" class="modal-image">
+            <h3 id="modalTitle" class="modal-title"></h3>
+            <p id="modalContent" class="modal-text"></p>
+        </div>
+    </div>
+
+</body>
+
+</html>
