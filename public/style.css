@@ -350,7 +350,33 @@ h1 {
     }
 }
 
+/* --- Glow verde neon --- */
 .neon-green {
-    color: #4effa3;
-    text-shadow: 0 0 10px #33ff88, 0 0 20px #33ff88;
+    color: #00ff9d;
+    text-shadow: 0 0 10px #00ff9d, 0 0 20px #00ff9d;
+}
+
+/* --- Card futurista que se inclina (tilt 3D) --- */
+.neon-tilt-card {
+    background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
+    border: 1px solid #00ff9d80;
+    box-shadow: 0 0 15px #00ff9d40;
+    border-radius: 20px;
+    padding: 25px;
+    transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+.neon-tilt-card:hover {
+    box-shadow: 0 0 25px #00ff9d80;
+}
+
+/* Efecto glow más suave en los inputs */
+.input-neon {
+    box-shadow: 0 0 12px #00ff9d50;
+}
+
+.btn-neon {
+    box-shadow: 0 0 15px #00ff9d50;
 }
