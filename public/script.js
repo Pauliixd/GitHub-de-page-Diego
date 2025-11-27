@@ -7,12 +7,13 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gsta
 
 // Configuración de Firebase
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_AUTH_DOMAIN",
+  apiKey: "AIzaSyD7o2Nam_oBXSsT7QRGMudpwRl5Z5DTjpA",
+  authDomain: "moaixd.firebaseapp.com",
   projectId: "moaixd",
-  storageBucket: "TU_BUCKET",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
+  storageBucket: "moaixd.firebasestorage.app",
+  messagingSenderId: "498764551600",
+  appId: "1:498764551600:web:e03e02d06679e0d5007275",
+  measurementId: "G-W0LVF5RVDR"
 };
 
 // Inicializar Firebase
