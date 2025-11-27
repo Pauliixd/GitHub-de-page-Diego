@@ -23,7 +23,7 @@ let userId;
 let isAuthReady = false;
 
 // Global variables provided by the Canvas environment (or undefined if opened directly)
-const appId =
+const appId = "moaixd";
     typeof __app_id !== "undefined" ? __app_id : "default-app-id";
 const firebaseConfig =
     typeof __firebase_config !== "undefined"
