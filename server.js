@@ -51,13 +51,13 @@ try {
     process.exit(1); 
 }
 
-// Middleware de Express para parsear cuerpos de solicitud JSON.
-app.use(express.json());
+// Servir archivos estáticos desde /public
+app.use(express.static(path.join(__dirname, 'public')));
 
-// --------------------------------------------------------------------------------
-// Habilitar servir archivos estáticos (CSS, JS, imágenes, etc.) desde la carpeta raíz
-// --------------------------------------------------------------------------------
-app.use(express.static(__dirname));
+// Ruta principal
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // --- Función para verificar el estado del Stream de Kick ---
 async function checkKickStreamStatus() {
