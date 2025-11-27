@@ -12,7 +12,11 @@ import {
     query,
     orderBy,
     onSnapshot,
+    setLogLevel // Importación para debugging
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// Habilitar el nivel de log de debug de Firestore para ver conexiones y errores.
+setLogLevel('debug');
 
 let app;
 let db;
@@ -32,322 +36,183 @@ const firebaseConfig =
             projectId: "moaixd",
             storageBucket: "moaixd.firebasestorage.app",
             messagingSenderId: "498764551600",
-            appId: "1:498764551600:web:e03e02d06679e0d5007275",
-            measurementId: "G-W0LVF5RVDR",
+            appId: "1:498764551600:web:1e58a74e92a297e28a9b2b"
         };
 const initialAuthToken =
-    typeof __initial_auth_token !== "undefined"
-        ? __initial_auth_token
-        : null;
+    typeof __initial_auth_token !== "undefined" ? __initial_auth_token : null;
 
-// Crea el elemento toast una sola vez al cargar el script
-const toast = document.createElement("div");
-toast.className = "toast";
-toast.id = "toastOnline"; // Opcional, si quieres un ID específico
-toast.innerText = "¡Moaixd está en vivo ahora!";
+// Referencias a elementos del DOM
+const streamStatusElement = document.getElementById("streamStatus");
+const streamTitleElement = document.getElementById("streamTitle");
+const kickLinkElement = document.getElementById("kickLink");
+const announcementsContainer = document.getElementById("announcementsContainer");
+const closeModalBtn = document.getElementById('closeModalBtn');
+const announcementModal = document.getElementById('announcementModal');
 
+// --- Utilidades ---
+const KICK_CHANNEL_SLUG = "moaixd"; // O la variable de entorno real si fuera un backend
 
-document.addEventListener("DOMContentLoaded", async () => {
-    // Añade el toast al cuerpo del documento cuando el DOM esté listo
-    document.body.appendChild(toast);
+/**
+ * Actualiza el indicador de estado del stream.
+ * @param {boolean} isLive - true si está en vivo, false si no.
+ * @param {string} title - El título del stream (opcional).
+ */
+function updateStreamStatusUI(isLive, title) {
+    if (!streamStatusElement || !streamTitleElement) return;
 
-    // Obtener referencias a los elementos DOM
-    const statusText = document.getElementById("statusText");
-    const statusIndicator = document.getElementById("statusIndicator");
-    const loadingSpinner = document.getElementById("loadingSpinner");
-    const messageInput = document.getElementById("messageInput");
-    const goLiveButtonContainer = document.getElementById("goLiveButtonContainer"); // Referencia al contenedor del botón
-
-    // Referencias a los elementos del modal
-    const modal = document.getElementById('announcementModal');
-    const modalImage = document.getElementById('modalImage');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalContent = document.getElementById('modalContent');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-
-    // Event listener para cerrar el modal
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', () => {
-            if (modal) modal.style.display = 'none';
-        });
-    }
-    // Cerrar modal al hacer clic fuera del contenido
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) { // Si el clic es directamente en el overlay del modal
-                modal.style.display = 'none';
-            }
-        });
+    if (isLive) {
+        streamStatusElement.className =
+            "inline-block px-6 py-2 rounded-full shadow-lg font-bold text-lg transition-all duration-500 ease-in-out bg-kick-green text-black";
+        streamStatusElement.innerHTML =
+            '<i class="fas fa-circle animate-pulse mr-2 text-red-500"></i> EN VIVO AHORA';
+        streamTitleElement.textContent = title
+            ? title
+            : "¡Conéctate y saluda!";
+    } else {
+        streamStatusElement.className =
+            "inline-block px-6 py-2 rounded-full shadow-lg font-bold text-lg transition-all duration-500 ease-in-out bg-gray-700 text-gray-300";
+        streamStatusElement.innerHTML =
+            '<i class="fas fa-circle mr-2 text-gray-400"></i> FUERA DE LÍNEA';
+        streamTitleElement.textContent =
+            "Revisa mis redes para el próximo anuncio de stream.";
     }
 
+    if (kickLinkElement) {
+        kickLinkElement.href = `https://kick.com/${KICK_CHANNEL_SLUG}`;
+    }
+}
 
+// --- Inicialización y Autenticación de Firebase ---
+async function initializeFirebase() {
     try {
         app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
 
+        // Intenta iniciar sesión con el token personalizado si está disponible
         if (initialAuthToken) {
             await signInWithCustomToken(auth, initialAuthToken);
         } else {
+            // Si no hay token, inicia sesión de forma anónima
             await signInAnonymously(auth);
         }
 
+        // Listener para el estado de autenticación
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
                 isAuthReady = true;
-                console.log(
-                    "Firebase initialized and authenticated. User ID:",
-                    userId
-                );
-                setupFirestoreListeners(); // Llama a la función que configura TODOS los listeners
+                console.log("Firebase initialized and authenticated. User ID:", userId);
+                // Una vez autenticado, comienza a escuchar los datos
+                listenForStreamStatus();
+                listenForAnnouncements();
             } else {
-                console.log("No user is signed in.");
                 isAuthReady = true;
-                setupFirestoreListeners(); // Llama a la función que configura TODOS los listeners
+                // Si el usuario se cierra la sesión por alguna razón, podemos intentar anónimamente de nuevo
+                console.log("User signed out, retrying anonymous sign-in.");
+                signInAnonymously(auth).catch(e => console.error("Error signing in anonymously:", e));
             }
         });
-    } catch (error) {
-        console.error("Error initializing Firebase:", error);
-        if (statusText) statusText.textContent = "Error de conexión";
-        if (statusIndicator) {
-            statusIndicator.classList.remove("online", "offline");
-            statusIndicator.style.backgroundColor = "gray";
-            statusIndicator.style.display = "inline-block"; // Mostrar indicador en caso de error
-        }
-        if (loadingSpinner) loadingSpinner.style.display = "none";
-        if (goLiveButtonContainer) goLiveButtonContainer.style.display = "none"; // Asegurarse de que el botón esté oculto en caso de error
-    }
 
-    // Añadir event listener para messageInput aquí
-    if (messageInput) {
-        messageInput.addEventListener("input", () => {
-            // This input doesn't directly update the displayed message.
-            // It would require an API call to your backend to update Firestore.
-        });
+    } catch (e) {
+        console.error("Error during Firebase initialization or authentication:", e);
+        // Mostrar un estado de error en la UI si la conexión falla
+        streamStatusElement.innerHTML = '<i class="fas fa-exclamation-triangle mr-2 text-red-500"></i> Error de conexión';
+        streamStatusElement.className = "inline-block px-6 py-2 rounded-full shadow-lg font-bold text-lg transition-all duration-500 ease-in-out bg-red-800 text-white";
     }
-});
+}
 
-// Función central para configurar todos los listeners de Firestore
-function setupFirestoreListeners() {
-    if (!isAuthReady || !db) {
-        console.warn("Firestore not ready or DB not initialized.");
-        return;
-    }
+// --- Listeners de Firestore ---
 
-    // --- Listener para el Estado del Stream ---
-    const streamStatusDocRef = doc(
+/**
+ * Escucha el documento que contiene el estado del stream de Kick.
+ */
+function listenForStreamStatus() {
+    if (!db || !isAuthReady) return;
+
+    // Ruta para el documento de estado público: /artifacts/{appId}/public/data/stream_status/kick_moaixd
+    const streamDocRef = doc(
         db,
-        `artifacts/${appId}/public/data/stream_status`,
-        "current_status"
+        "artifacts",
+        appId,
+        "public",
+        "data",
+        "stream_status",
+        `kick_${KICK_CHANNEL_SLUG}`
     );
+    
+    console.log(`[Firestore Status] Intentando conectar con el documento: artifacts/${appId}/public/data/stream_status/kick_${KICK_CHANNEL_SLUG}`);
 
-    onSnapshot(
-        streamStatusDocRef,
+    // Usa onSnapshot para escuchar cambios en tiempo real
+    const unsubscribe = onSnapshot(
+        streamDocRef,
         (docSnapshot) => {
-            const statusIndicator = document.getElementById("statusIndicator");
-            const statusText = document.getElementById("statusText");
-            const displayMessage = document.getElementById("displayMessage");
-            const loadingSpinner = document.getElementById("loadingSpinner");
-            const avatar = document.querySelector('img[alt="Avatar de Moaixd"]');
-            const goLiveButtonContainer = document.getElementById("goLiveButtonContainer");
-            const goLiveButton = document.getElementById("goLiveButton");
-
-
-            if (loadingSpinner) loadingSpinner.style.display = "none";
-
-            if (statusIndicator) statusIndicator.style.display = "inline-block";
-
-
             if (docSnapshot.exists()) {
                 const data = docSnapshot.data();
-                const isOnline = data.isOnline;
-                const message = data.message || "";
-
-                if (isOnline) {
-                    if (statusIndicator) {
-                        statusIndicator.classList.remove("offline");
-                        statusIndicator.classList.add("online");
-                    }
-                    if (statusText) {
-                        statusText.textContent = "Online";
-                        statusText.classList.remove("text-offline");
-                        statusText.classList.add("text-online");
-                    }
-                    if (displayMessage) {
-                        displayMessage.textContent = message;
-                        displayMessage.style.display = "block";
-                    }
-
-                    if (avatar) {
-                        avatar.classList.remove("avatar-glow-offline");
-                        avatar.classList.add("avatar-glow-online");
-                    }
-
-                    if (statusText) {
-                        statusText.classList.remove("glow-text-offline");
-                        statusText.classList.add("glow-text-online");
-                    }
-
-                    if (goLiveButtonContainer) goLiveButtonContainer.style.display = "block";
-                    if (goLiveButton) goLiveButton.classList.add("go-live-button");
-
-
-                    if (toast) {
-                        toast.style.display = "block";
-                        setTimeout(() => toast.classList.add("show"), 10);
-                    }
-                } else {
-                    if (statusIndicator) {
-                        statusIndicator.classList.remove("online");
-                        statusIndicator.classList.add("offline");
-                    }
-                    if (statusText) {
-                        statusText.textContent = "Offline";
-                        statusText.classList.remove("text-online");
-                        statusText.classList.add("text-offline");
-                    }
-                    if (displayMessage) {
-                        displayMessage.textContent = "";
-                        displayMessage.style.display = "none";
-                    }
-
-                    if (avatar) {
-                        avatar.classList.remove("avatar-glow-online");
-                        avatar.classList.add("avatar-glow-offline");
-                    }
-
-                    if (statusText) {
-                        statusText.classList.remove("glow-text-online");
-                        statusText.classList.add("glow-text-offline");
-                    }
-
-                    if (goLiveButtonContainer) goLiveButtonContainer.style.display = "none";
-                    if (goLiveButton) goLiveButton.classList.remove("go-live-button");
-
-
-                    if (toast) {
-                        toast.classList.remove("show");
-                        setTimeout(() => {
-                            toast.style.display = "none";
-                        }, 500);
-                    }
-                }
-
+                console.log("[Firestore Status] Datos recibidos:", data);
+                updateStreamStatusUI(data.isLive, data.streamTitle);
             } else {
-                console.log(
-                    "No stream status data found in Firestore. Defaulting to offline."
-                );
-                if (statusIndicator) {
-                    statusIndicator.classList.remove("online");
-                    statusIndicator.classList.add("offline");
-                }
-                if (statusText) {
-                    statusText.textContent = "Offline";
-                    statusText.classList.remove("text-online");
-                    statusText.classList.add("text-offline");
-                }
-                if (displayMessage) {
-                    displayMessage.textContent = "Esperando estado del stream...";
-                    displayMessage.style.display = "block";
-                }
-
-                if (avatar) avatar.classList.remove("avatar-glow-online", "avatar-glow-offline");
-                if (statusText) statusText.classList.remove("glow-text-online", "glow-text-offline");
-                if (goLiveButtonContainer) goLiveButtonContainer.style.display = "none";
-                if (goLiveButton) goLiveButton.classList.remove("go-live-button");
-                if (toast) {
-                    toast.classList.remove("show");
-                    toast.style.display = "none";
-                }
+                // Si el documento no existe (ej. la primera vez), asume que está offline
+                updateStreamStatusUI(false, null);
+                console.log("[Firestore Status] Documento no encontrado. Asumiendo offline.");
             }
         },
         (error) => {
-            console.error("Error listening to Firestore (stream status):", error);
-            const statusText = document.getElementById("statusText");
-            const statusIndicator = document.getElementById("statusIndicator");
-            const loadingSpinner = document.getElementById("loadingSpinner");
-            const avatar = document.querySelector('img[alt="Avatar de Moaixd"]');
-            const goLiveButtonContainer = document.getElementById("goLiveButtonContainer");
-            const goLiveButton = document.getElementById("goLiveButton");
-
-            if (statusText) statusText.textContent = "Error de conexión";
-            if (statusIndicator) {
-                statusIndicator.classList.remove("online", "offline");
-                statusIndicator.style.backgroundColor = "gray";
-                statusIndicator.style.display = "inline-block";
-            }
-            if (loadingSpinner) loadingSpinner.style.display = "none";
-            if (goLiveButtonContainer) goLiveButtonContainer.style.display = "none";
-            if (goLiveButton) goLiveButton.classList.remove("go-live-button");
-
-
-            if (avatar) avatar.classList.remove("avatar-glow-online", "avatar-glow-offline");
-            if (statusText) statusText.classList.remove("glow-text-online", "glow-text-offline");
-            if (toast) {
-                toast.classList.remove("show");
-                toast.style.display = "none";
-            }
+            console.error("[Firestore Status] Error al escuchar Firestore:", error);
+            updateStreamStatusUI(false, "Error al obtener el estado.");
         }
     );
+    // Nota: Guardar 'unsubscribe' permitiría detener la escucha, pero no es necesario para esta app.
+}
 
-    // --- Listener para Comunidados y Novedades ---
-    const announcementsContainer = document.getElementById("announcementsContainer");
-    const announcementsCollectionRef = collection(db, `artifacts/${appId}/public/data/announcements`);
-    // Ordenar por timestamp en orden descendente para que las novedades más recientes aparezcan primero
-    const q = query(announcementsCollectionRef, orderBy("timestamp", "desc"));
+/**
+ * Escucha la colección de anuncios.
+ */
+function listenForAnnouncements() {
+    if (!db || !isAuthReady || !announcementsContainer) return;
+
+    // Ruta para la colección de anuncios públicos: /artifacts/{appId}/public/data/announcements
+    const announcementsColRef = collection(
+        db,
+        "artifacts",
+        appId,
+        "public",
+        "data",
+        "announcements"
+    );
+
+    // Consulta: obtiene los 5 comunicados más recientes
+    const q = query(
+        announcementsColRef,
+        orderBy("timestamp", "desc")
+        // No hay un límite explícito aquí, pero se pueden agregar si la colección es grande
+    );
+    
+    console.log("[Firestore Announcements] Intentando conectar con la colección de anuncios.");
 
     onSnapshot(q, (querySnapshot) => {
-        if (announcementsContainer) {
-            announcementsContainer.innerHTML = ''; // Limpia los comunicados existentes
-
-            if (querySnapshot.empty) {
-                announcementsContainer.innerHTML = '<p class="text-gray-400">No hay novedades por el momento.</p>';
-                return;
-            }
-
-            querySnapshot.forEach((doc) => {
+        // Limpiar el contenedor
+        announcementsContainer.innerHTML = '';
+        if (querySnapshot.empty) {
+            announcementsContainer.innerHTML = '<p class="text-gray-500">No hay novedades recientes.</p>';
+            console.log("[Firestore Announcements] Colección vacía.");
+        } else {
+            console.log(`[Firestore Announcements] ${querySnapshot.docs.length} documentos recibidos.`);
+            querySnapshot.docs.forEach(doc => {
                 const announcement = doc.data();
+                // Formato de fecha
+                const date = announcement.timestamp?.toDate ? announcement.timestamp.toDate().toLocaleDateString('es-ES') : 'Fecha desconocida';
+
+                // Crear elemento de novedad
                 const announcementElement = document.createElement('div');
-                announcementElement.className = 'bg-gray-700 bg-opacity-30 p-4 rounded-lg shadow-inner cursor-pointer'; // Añadido cursor-pointer
-                
-                // Añadir un data-attribute para almacenar el ID del documento si es necesario
-                announcementElement.dataset.docId = doc.id; 
-                
-                const titleElement = document.createElement('h3');
-                titleElement.className = 'text-lg font-semibold text-white mb-1';
-                titleElement.textContent = announcement.title || 'Sin título';
+                announcementElement.className = 'p-4 bg-gray-700 rounded-lg shadow-md cursor-pointer hover:bg-gray-600 transition-colors duration-200 ease-in-out';
+                announcementElement.innerHTML = `
+                    <h4 class="font-bold text-lg text-white">${announcement.title || 'Sin título'}</h4>
+                    <p class="text-sm text-kick-green mb-1">${date}</p>
+                    <p class="text-gray-400 text-sm line-clamp-2">${announcement.content || 'Sin contenido.'}</p>
+                `;
 
-                const contentElement = document.createElement('p');
-                contentElement.className = 'text-gray-300 text-sm';
-                contentElement.textContent = announcement.content || '';
-
-                const dateElement = document.createElement('p');
-                dateElement.className = 'text-gray-500 text-xs mt-2';
-                // Formatear la fecha si existe un timestamp
-                if (announcement.timestamp && announcement.timestamp.toDate) {
-                    const date = announcement.timestamp.toDate();
-                    dateElement.textContent = `Publicado el ${date.toLocaleDateString()} a las ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-                } else {
-                    dateElement.textContent = 'Fecha desconocida';
-                }
-
-                announcementElement.appendChild(titleElement);
-                announcementElement.appendChild(contentElement);
-                
-                // NUEVO: Añadir la imagen si existe
-                if (announcement.imageUrl) {
-                    const imageElement = document.createElement('img');
-                    imageElement.src = announcement.imageUrl;
-                    imageElement.alt = announcement.title || 'Imagen de novedad';
-                    // Clases Tailwind para hacer la imagen responsiva y con estilo
-                    imageElement.className = 'w-full h-auto rounded-lg mt-4 mb-2 object-cover'; 
-                    announcementElement.appendChild(imageElement);
-                }
-
-                announcementElement.appendChild(dateElement);
-
-                // ➤ Event listener para abrir el modal al hacer clic en el comunicado
+                // Agregar evento para abrir el modal
                 announcementElement.addEventListener('click', () => {
                     const modal = document.getElementById('announcementModal');
                     const modalImage = document.getElementById('modalImage');
@@ -370,9 +235,32 @@ function setupFirestoreListeners() {
             });
         }
     }, (error) => {
-        console.error("Error listening to Firestore (announcements):", error);
+        console.error("[Firestore Announcements] Error al escuchar Firestore:", error);
         if (announcementsContainer) {
             announcementsContainer.innerHTML = '<p class="text-red-400">Error al cargar las novedades.</p>';
         }
     });
 }
+
+// --- Lógica del Modal ---
+function setupModalEvents() {
+    if (closeModalBtn && announcementModal) {
+        closeModalBtn.addEventListener('click', () => {
+            announcementModal.style.display = 'none';
+        });
+
+        // Cerrar al hacer clic fuera del modal
+        window.addEventListener('click', (event) => {
+            if (event.target === announcementModal) {
+                announcementModal.style.display = 'none';
+            }
+        });
+    }
+}
+
+// --- Inicio de la Aplicación ---
+// Se ejecuta al cargar el script.
+window.onload = function () {
+    initializeFirebase();
+    setupModalEvents();
+};
