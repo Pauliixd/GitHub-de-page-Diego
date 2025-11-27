@@ -1,19 +1,19 @@
 // script.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
-  getFirestore,
-  doc,
-  collection,
-  getDoc,
-  getDocs
+    getFirestore,
+    doc,
+    getDoc,
+    collection,
+    getDocs
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import {
-  getAuth,
-  signInAnonymously,
-  onAuthStateChanged
+    getAuth,
+    signInAnonymously,
+    onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-// ========  CONFIGURACIÓN DE FIREBASE ========
+// CONFIGURA AQUÍ TU FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyD7o2Nam_oBXSsT7QRGMudpwRl5Z5DTjpA",
   authDomain: "moaixd.firebaseapp.com",
@@ -24,125 +24,86 @@ const firebaseConfig = {
   measurementId: "G-W0LVF5RVDR"
 };
 
-// Inicializar Firebase
+// Inicializa Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
 console.log("Firebase initialized.");
 
-// ======== AUTENTICACIÓN ANÓNIMA ========
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    console.log("User authenticated:", user.uid);
-    await cargarEstadoStream();
-    await cargarAnuncios();
-  } else {
-    console.log("No user, signing in anonymously...");
-    try {
-      await signInAnonymously(auth);
-    } catch (error) {
-      console.error("Error signing in anonymously:", error);
-    }
-  }
-});
-
-// ========  ELEMENTOS DEL DOM ========
-const statusIndicator = document.getElementById("statusIndicator");
-const statusText = document.getElementById("statusText");
-const goLiveButtonContainer = document.getElementById("goLiveButtonContainer");
-const displayMessage = document.getElementById("displayMessage");
-const loadingSpinner = document.getElementById("loadingSpinner");
-const avatar = document.querySelector("img[alt='Avatar de Moaixd']");
-
-// Modal
-const modal = document.getElementById("announcementModal");
-const closeBtn = document.getElementById("closeModalBtn");
-const modalImage = document.getElementById("modalImage");
-const modalTitle = document.getElementById("modalTitle");
-const modalContent = document.getElementById("modalContent");
-
-// ========  FUNCIONES ========
-
-// Función para actualizar estado del stream
+// Función para cargar estado del stream
 async function cargarEstadoStream() {
-  try {
-    const docRef = doc(db, "streamStatus", "status"); // Ajusta tu colección/documento
-    const docSnap = await getDoc(docRef);
+    const appId = "moaixd";
+    const statusDocRef = doc(db, `artifacts/${appId}/public/data/stream_status/current_status`);
 
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      const isLive = data.isLive;
+    try {
+        const statusSnap = await getDoc(statusDocRef);
+        if (statusSnap.exists()) {
+            const data = statusSnap.data();
+            console.log("[Firestore Status] Datos recibidos:", data);
 
-      // Actualizar spinner
-      loadingSpinner.style.display = "none";
+            // Actualiza el DOM según tu estructura HTML
+            const statusText = document.getElementById("statusText");
+            const statusIndicator = document.getElementById("statusIndicator");
+            const goLiveButtonContainer = document.getElementById("goLiveButtonContainer");
 
-      // Indicador
-      statusIndicator.classList.remove("online", "offline");
-      statusIndicator.classList.add(isLive ? "online" : "offline");
+            if (data.isLive) {
+                statusText.textContent = data.streamTitle || "¡Estoy en vivo!";
+                statusIndicator.classList.remove("offline");
+                statusIndicator.classList.add("online");
+                goLiveButtonContainer.style.display = "block";
+            } else {
+                statusText.textContent = "Offline por ahora";
+                statusIndicator.classList.remove("online");
+                statusIndicator.classList.add("offline");
+                goLiveButtonContainer.style.display = "none";
+            }
 
-      // Texto
-      statusText.textContent = isLive ? "¡En vivo ahora!" : "Offline, hermano...";
-      statusText.classList.remove("glow-text-online", "glow-text-offline");
-      statusText.classList.add(isLive ? "glow-text-online" : "glow-text-offline");
-
-      // Avatar glow
-      avatar.classList.remove("avatar-glow-online", "avatar-glow-offline");
-      avatar.classList.add(isLive ? "avatar-glow-online" : "avatar-glow-offline");
-
-      // Botón "Ver en vivo"
-      goLiveButtonContainer.style.display = isLive ? "flex" : "none";
-
-      // Mensaje adicional
-      displayMessage.textContent = data.streamTitle || "";
-
-      console.log("[Firestore Status] Datos recibidos:", data);
-    } else {
-      console.log("No status document found");
-      loadingSpinner.style.display = "none";
+        } else {
+            console.log("No status document found");
+        }
+    } catch (error) {
+        console.error("Error cargando estado del stream:", error);
     }
-  } catch (error) {
-    console.error("Error cargando estado del stream:", error);
-    loadingSpinner.style.display = "none";
-  }
 }
 
 // Función para cargar anuncios
 async function cargarAnuncios() {
-  try {
-    const querySnapshot = await getDocs(collection(db, "announcements"));
-    const container = document.getElementById("announcementsContainer");
-    container.innerHTML = "";
+    const appId = "moaixd";
+    const announcementsCol = collection(db, `artifacts/${appId}/public/data/announcements`);
 
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const p = document.createElement("p");
-      p.className = "text-gray-200 cursor-pointer hover:text-green-400 transition-all duration-200";
-      p.textContent = data.title;
-      p.addEventListener("click", () => openModal(data));
-      container.appendChild(p);
-    });
+    try {
+        const querySnapshot = await getDocs(announcementsCol);
+        const container = document.getElementById("announcementsContainer");
+        container.innerHTML = ""; // limpia el contenido previo
 
-    console.log("[Firestore Announcements] Documentos recibidos:", querySnapshot.size);
-  } catch (error) {
-    console.error("Error cargando anuncios:", error);
-  }
+        if (!querySnapshot.empty) {
+            querySnapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const p = document.createElement("p");
+                p.textContent = data.title || "Sin título";
+                container.appendChild(p);
+            });
+            console.log("[Firestore Announcements] Documentos recibidos:", querySnapshot.size);
+        } else {
+            container.innerHTML = "<p class='text-gray-400'>No hay novedades por ahora.</p>";
+            console.log("[Firestore Announcements] Documentos recibidos: 0");
+        }
+    } catch (error) {
+        console.error("Error cargando anuncios:", error);
+    }
 }
 
-// Función para abrir modal
-function openModal(data) {
-  modalImage.src = data.img || "";
-  modalTitle.textContent = data.title || "";
-  modalContent.textContent = data.content || "";
-  modal.style.display = "flex";
-}
-
-// Cerrar modal
-closeBtn.addEventListener("click", () => {
-  modal.style.display = "none";
-});
-
-// Cerrar modal si hace click fuera del contenido
-window.addEventListener("click", (e) => {
-  if (e.target === modal) modal.style.display = "none";
+// Manejo de autenticación
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        console.log("User authenticated:", user.uid);
+        cargarEstadoStream();
+        cargarAnuncios();
+    } else {
+        console.log("No user, signing in anonymously...");
+        signInAnonymously(auth).catch((error) => {
+            console.error("Error signing in anonymously:", error);
+        });
+    }
 });
