@@ -5,6 +5,12 @@ import express from 'express'; // Para crear el servidor web
 import admin from 'firebase-admin'; // Para interactuar con Firestore
 import dotenv from 'dotenv'; // Para cargar variables de entorno desde .env
 import { Buffer } from 'buffer'; // Módulo nativo de Node.js para decodificar Base64. ¡CRUCIAL!
+import path from 'path'; // CRUCIAL para manejar rutas de archivos
+import { fileURLToPath } from 'url'; // CRUCIAL para obtener __dirname en ES Modules
+
+// Obtener el equivalente de __filename y __dirname para entornos ES Module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Carga las variables de entorno definidas en tu archivo .env
 dotenv.config();
@@ -48,6 +54,11 @@ try {
 // Middleware de Express para parsear cuerpos de solicitud JSON.
 app.use(express.json());
 
+// --------------------------------------------------------------------------------
+// Habilitar servir archivos estáticos (CSS, JS, imágenes, etc.) desde la carpeta raíz
+// --------------------------------------------------------------------------------
+app.use(express.static(__dirname));
+
 // --- Función para verificar el estado del Stream de Kick ---
 async function checkKickStreamStatus() {
     console.log("Verificando estado del stream de Kick...");
@@ -57,14 +68,12 @@ async function checkKickStreamStatus() {
         return; 
     }
 
-    // --------------------------------------------------------------------------------
-    // CAMBIO CRUCIAL: Uso de un proxy CORS para evitar el bloqueo 403 de Kick por IP.
-    // --------------------------------------------------------------------------------
+    // Uso de un proxy CORS para evitar el bloqueo 403 de Kick por IP.
     const KICK_API_URL = `https://kick.com/api/v1/channels/${KICK_CHANNEL_SLUG}`;
     const url = `https://corsproxy.io/?${encodeURIComponent(KICK_API_URL)}`;
 
     try {
-        // Los encabezados robustos que ya definimos.
+        // Los encabezados robustos para simular un navegador.
         const headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.109 Safari/537.36',
             'Accept': 'application/json, text/plain, */*',
@@ -77,7 +86,6 @@ async function checkKickStreamStatus() {
         const response = await fetch(url, { headers: headers });
 
         if (!response.ok) {
-            // El proxy devolverá 200 aunque Kick falle, pero si el proxy falla, lo reportamos.
             console.error(`Error al contactar al proxy o la API de Kick: ${response.status} ${response.statusText}`);
             return;
         }
@@ -113,14 +121,11 @@ async function checkKickStreamStatus() {
 }
 
 // --------------------------------------------------------------------------------
-// Endpoint para la URL raíz (/)
+// CORRECCIÓN: Endpoint para la URL raíz (/) que sirve index.html
 // --------------------------------------------------------------------------------
 app.get('/', (req, res) => {
-    res.status(200).send({
-        status: 'OK',
-        message: 'Servidor de backend de estado de stream activo y funcionando. La verificación de Kick ocurre cada 2 minutos.',
-        check_status_url: '/update-stream-status'
-    });
+    // Esto asegura que index.html se sirva como página principal.
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 
