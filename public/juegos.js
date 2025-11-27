@@ -22,7 +22,7 @@ initializeApp(firebaseConfig);
 const db = getFirestore();
 const refPalabra = doc(db, "juegos", "ahorcado");
 
-// Elementos del DOM
+// ======================= ELEMENTOS DEL DOM =======================
 const palabraAhorcado = document.getElementById("palabraAhorcado");
 const letrasUsadasEl = document.getElementById("letrasUsadas");
 const intentosRestantesEl = document.getElementById("intentosRestantes");
@@ -31,48 +31,53 @@ const mensajeFinal = document.getElementById("mensajeFinal");
 const inputLetra = document.getElementById("inputLetra");
 const btnProbar = document.getElementById("btnProbarLetra");
 
-// Variables del juego
+// ======================= VARIABLES DEL JUEGO =======================
 let palabraSecreta = "";
 let progreso = [];
 let letrasUsadas = [];
 let intentos = 7;
+let juegoTerminado = false;
 
-// ---------- Cargar palabra desde Firestore ----------
+// ======================= CARGAR PALABRA =======================
 async function cargarPalabra() {
     const snap = await getDoc(refPalabra);
 
-    if (snap.exists()) {
-        palabraSecreta = snap.data().palabra.toLowerCase().trim();
-    } else {
-        palabraSecreta = "moaixd"; // fallback por si falta en Firestore
-    }
+    palabraSecreta = snap.exists()
+        ? snap.data().palabra.toLowerCase().trim()
+        : "moaixd";
 
     progreso = palabraSecreta.split("").map(() => "_");
-    renderJuego();
-}
-cargarPalabra();
 
-// ---------- Mostrar el estado del juego ----------
-function renderJuego() {
+    render();
+}
+
+// ======================= RENDER =======================
+function render() {
     palabraAhorcado.textContent = progreso.join(" ");
     letrasUsadasEl.textContent = letrasUsadas.join(", ");
     intentosRestantesEl.textContent = intentos;
 
     if (progreso.join("") === palabraSecreta) {
-        mensajeFinal.textContent = "🎉 ¡GANASTE!";
+        finalizarJuego("🎉 ¡GANASTE!");
     }
 
     if (intentos <= 0) {
-        mensajeFinal.textContent = "💀 Perdiste! La palabra era: " + palabraSecreta;
+        finalizarJuego(`💀 Perdiste! malo culeado`);
     }
 }
 
-// ---------- Probar letra ----------
-btnProbar.addEventListener("click", () => {
-    const letra = inputLetra.value.toLowerCase();
+function finalizarJuego(mensaje) {
+    juegoTerminado = true;
+    mensajeFinal.textContent = mensaje;
+    inputLetra.disabled = true;
+    btnProbar.disabled = true;
+}
 
-    if (!letra.match(/[a-zñ]/) || letra.length !== 1) return;
+// ======================= PROBAR LETRA =======================
+function procesarLetra(letra) {
+    if (juegoTerminado) return;
 
+    if (!/^[a-zñ]$/.test(letra)) return;
     if (letrasUsadas.includes(letra)) return;
 
     letrasUsadas.push(letra);
@@ -82,13 +87,22 @@ btnProbar.addEventListener("click", () => {
             if (l === letra) progreso[i] = letra;
         });
     } else {
-        intentos--;
+        if (intentos > 0) intentos--;
     }
 
+    render();
+}
+
+btnProbar.addEventListener("click", () => {
+    const letra = inputLetra.value.toLowerCase();
+
+    procesarLetra(letra);
+
     inputLetra.value = "";
-    renderJuego();
+    inputLetra.focus();
 });
 
+// ======================= EFECTO 3D =======================
 const card = document.getElementById("ahorcadoSection");
 
 card.addEventListener("mousemove", (e) => {
@@ -96,11 +110,8 @@ card.addEventListener("mousemove", (e) => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-
-    const rotateX = ((y - centerY) / centerY) * 10;
-    const rotateY = ((x - centerX) / centerX) * -10;
+    const rotateX = ((y - rect.height / 2) / rect.height) * 15;
+    const rotateY = ((x - rect.width / 2) / rect.width) * -15;
 
     card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
 });
@@ -108,3 +119,6 @@ card.addEventListener("mousemove", (e) => {
 card.addEventListener("mouseleave", () => {
     card.style.transform = "rotateX(0) rotateY(0)";
 });
+
+// ======================= INICIAR =======================
+cargarPalabra();
