@@ -106,7 +106,7 @@ async function procesarIntento() {
     const fila = tablero.children[intentosRealizados];
     const celdas = fila.children;
 
-    // 👉 Animación letra por letra
+    // Animación letra por letra
     for (let i = 0; i < palabraSecreta.length; i++) {
         await new Promise((res) => setTimeout(res, 120)); // velocidad
 

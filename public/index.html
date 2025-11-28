@@ -136,6 +136,12 @@
                     </div>
 
                     <p id="mensajeWordle" class="text-center text-xl font-bold mt-4 neon-green"></p>
+
+                    <button id="btnReglas"
+                        class="px-6 py-2 bg-black-600 hover:bg-red-700 rounded-lg text-white font-bold shadow-lg btn-neon">
+                        Ver reglas
+                    </button>
+
                 </div>
 
                 <!-- ===================== COMUNICADOS ===================== -->
@@ -219,9 +225,17 @@
         </div>
     </div>
 
+    <div id="modalReglas" class="modal-overlay">
+        <div class="modal-content">
+            <span id="cerrarModal" class="close-btn">&times;</span>
+            <h2>Reglas del Juego 🔥</h2>
+            <div id="contenidoReglas">Cargando...</div>
+        </div>
+    </div>
 </body>
 
 <script type="module" src="./script.js"></script>
 <script type="module" src="juegos.js"></script>
+<script type="module" src="reglas.js"></script>
 
 </html>
