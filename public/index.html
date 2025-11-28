@@ -114,39 +114,28 @@
                     <p id="displayMessage" class="text-gray-100 text-lg mt-1 break-words"></p>
                 </div>
 
-                <!-- ===================== AHORCADO ===================== -->
-                <div class="content-block-card border-t border-gray-700 w-full neon-tilt-card" id="ahorcadoSection">
+                <!-- ===================== WORDLE ===================== -->
+                <div class="content-block-card border-t border-gray-700 w-full neon-tilt-card" id="wordleSection">
 
-                    <h2 class="text-4xl font-semibold text-white mb-4 kick-title-style">🎮 Ahorcado del Stream</h2>
+                    <h2 class="text-4xl font-semibold text-white mb-4 kick-title-style">🎮 La Palabra del Stream</h2>
 
                     <p class="text-gray-300 mb-4">
-                        ¡Adiviná la palabra secreta del día!
-                        (Pedime pistas en vivo 👀)
+                        ¡Adiviná la palabra secreta del día! (Pedime pistas en vivo 👀)
                     </p>
 
-                    <div id="palabraAhorcado" class="text-center text-4xl tracking-widest font-bold mb-6 neon-green">
-                    </div>
-
-                    <div class="text-gray-400 mb-4">
-                        Letras usadas: <span id="letrasUsadas"></span>
-                    </div>
+                    <div id="tablero" class="flex flex-col gap-2 mb-6"></div>
 
                     <div class="flex justify-center gap-4 mb-6">
-                        <input id="inputLetra" maxlength="1"
-                            class="bg-gray-900 text-white px-4 py-2 rounded-lg border border-green-500 w-20 text-center text-2xl input-neon"
-                            placeholder="_">
-                        <button id="btnProbarLetra"
+                        <input id="inputIntento" maxlength="30"
+                            class="bg-gray-900 text-white px-4 py-2 rounded-lg border border-green-500 w-40 text-center text-2xl input-neon"
+                            placeholder="Palabra">
+                        <button id="btnIntentar"
                             class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold shadow-lg btn-neon">
                             Probar
                         </button>
                     </div>
 
-                    <p class="text-center text-lg text-gray-300 mb-3">
-                        Intentos restantes:
-                        <span id="intentosRestantes" class="font-bold text-green-400">7</span>
-                    </p>
-
-                    <p id="mensajeFinal" class="text-center text-2xl font-bold mt-4 neon-green"></p>
+                    <p id="mensajeWordle" class="text-center text-xl font-bold mt-4 neon-green"></p>
                 </div>
 
                 <!-- ===================== COMUNICADOS ===================== -->
